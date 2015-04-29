@@ -54,9 +54,35 @@ class Board(object):
         self.reset()
 
     def reset(self):
-        b = ['.','.','.','.','.','.']
-        self.cols = [copy(b),copy(b),copy(b),copy(b),copy(b),copy(b),copy(b)]
+        b = ['.' for c in xrange(0,6)]
+        self.cols = [copy(b) for c in xrange(0,7)]
         self.current_player = "X"
+        self.fours = {"X": [], "O": []}
+        self.init_fours()
+
+    def init_fours(self):
+        full_list = []
+        # Add the verticals
+        for row in xrange(0, 3):
+            for col in xrange(0,7):
+                full_list.append([(row, col), (row + 1, col), (row + 2, col), (row + 3, col)])
+        # Add the horizontals
+        for row in xrange(0, 6):
+            for col in xrange(0, 4):
+                full_list.append([(row, col), (row, col + 1), (row, col + 2), (row, col + 3)])
+        # Add the up-rights
+        for row in xrange(0, 3):
+            for col in xrange(0, 4):
+                full_list.append([(row, col), (row + 1, col + 1), (row + 2, col + 2), (row + 3, col + 3)])
+        # Add the up-lefts
+        for row in xrange(3, 6):
+            for col in xrange(0, 4):
+                full_list.append([(row, col), (row - 1, col + 1), (row - 2, col + 2), (row - 3, col + 3)])
+        for l in full_list:
+            print l
+        assert(len(full_list) == 69)
+        self.fours["X"] = full_list
+        self.fours["O"] = deepcopy(full_list)
 
     def cannot_play_in(self, col):
         return not ('.' in self.cols[col])
@@ -80,10 +106,28 @@ class Board(object):
     def play(self, col):
         assert 0 <= col < 7
         if (not self.cannot_play_in(col)):
-            self.cols[col][self.lowest_available(col)] = self.current_player
+            row = self.lowest_available(col)
+            self.cols[col][row] = self.current_player
+            print len(self.fours["O"])
+            self.remove_fours(col, row)
+            print len(self.fours["O"])
             self.switch_player()
         else:
             raise ValueError("ColumnFull")
+
+    def remove_fours(self, col, row):
+        other_player = None
+        if self.current_player == "X":
+            other_player = "O"
+        else:
+            other_player = "X"
+        iterlist = copy(self.fours[other_player])
+        for four in iterlist:
+            # print ((row, col) in four)
+            if (row, col) in four:
+                # print "remove " + str(four)
+                self.fours[other_player].remove(four)
+        # print self.fours[other_player]
 
     def transpose(self, l):
         # http://stackoverflow.com/a/11387441/2228485
@@ -220,7 +264,7 @@ def singleplayer():
         b.display_board()
 
 def main():
-    singleplayer()
+    multiplayer()
 
 if __name__ == "__main__":
     main ()
