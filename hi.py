@@ -87,7 +87,6 @@ class Board(object):
     def cannot_play_in(self, col):
         return not ('.' in self.cols[col])
 
-
     def get_player(self):
         return self.current_player
 
@@ -214,6 +213,60 @@ class Board(object):
                     if (fours[0][k] == 4) or (fours[1][k] == 4):
                         flag = True
         return flag
+
+    # Heuristics/Features
+    # Normalized such that best case for X => 1, best case for 0 => -1
+    def fours_left(self):
+        return 2 * len(self.fours["X"])/69 - 1
+
+    def fours_left_opponent(self):
+        return 2 * (1 - len(self.fours["O"])/69) - 1
+
+    # This should be normalized to something better I think...
+    def fours_difference(self):
+        return 2 * (len(self.fours["X"]) - len(self.fours["O"]))/69 - 1
+
+    # A helper function.
+    def some_in_a_row(self, n, player):
+        ns = 0
+        for f in self.fours[player]:
+            how_many_in = 0
+            for (row, col) in f:
+                if self.cols[col][row] == player:
+                    how_many_in += 1
+            if how_many_in >= n:
+                ns += 1
+        if player == "X":
+            return 2 * len(ns)/69 - 1
+        else: # player == "O"
+            return 2 * (1 - len(ns)/69) - 1
+
+    def important_threes(self):
+        return self.some_in_a_row(3, "X")
+
+    def important_threes_opponent(self):
+        return self.some_in_a_row(3, "O")
+
+    def important_threes_difference(self):
+        return self.important_threes() - self.important_threes_difference()
+
+    def important_twos(self):
+        return self.some_in_a_row(2, "X")
+
+    def important_twos_opponent(self):
+        return self.some_in_a_row(2, "X")
+
+    def important_twos_difference(self):
+        return self.important_twos() - self.important_twos_opponent()
+
+    def present_in(self):
+        return self.some_in_a_row(1, "X")
+
+    def opponent_present_in(self):
+        return self.some_in_a_row(1, "O")
+
+    def presence_difference(self):
+        return self.present_in() - self.opponent_present_in()
 
 def multiplayer():
     b = Board()
