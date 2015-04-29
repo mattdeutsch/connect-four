@@ -78,9 +78,6 @@ class Board(object):
         for row in xrange(3, 6):
             for col in xrange(0, 4):
                 full_list.append([(row, col), (row - 1, col + 1), (row - 2, col + 2), (row - 3, col + 3)])
-        for l in full_list:
-            print l
-        assert(len(full_list) == 69)
         self.fours["X"] = full_list
         self.fours["O"] = deepcopy(full_list)
 
@@ -96,6 +93,15 @@ class Board(object):
             self.current_player = "O"
         else:
             self.current_player = "X"
+
+    def other_player(self):
+        other_player = ""
+        if self.current_player == "X":
+            other_player = "O"
+        else:
+            other_player = "X"
+        return other_player
+
 
     def lowest_available(self, col):
         for i, sq in enumerate(self.cols[col]):
@@ -116,17 +122,12 @@ class Board(object):
             raise ValueError("ColumnFull")
 
     def remove_fours(self, col, row):
-        other_player = None
-        if self.current_player == "X":
-            other_player = "O"
-        else:
-            other_player = "X"
-        iterlist = copy(self.fours[other_player])
+        iterlist = copy(self.fours[self.other_player()])
         for four in iterlist:
             # print ((row, col) in four)
             if (row, col) in four:
                 # print "remove " + str(four)
-                self.fours[other_player].remove(four)
+                self.fours[self.other_player()].remove(four)
         # print self.fours[other_player]
 
     def transpose(self, l):
@@ -185,40 +186,16 @@ class Board(object):
         return score
 
     def winning(self):
-        flag = False
-
-        for i in xrange(0, COLSNUM - 3):
-            for j in xrange(0, ROWSNUM - 3):
-                fours = [[],[]]
-
-                for x in xrange (0,10):
-                    fours[0].append(0)
-                    fours[1].append(0)
-
-                for k in xrange(0,4):
-                    for m in xrange(0,4):
-                        if (self.cols[i+k][j+m] != "."):
-                            if (self.cols[i+k][j+m] == "X"):
-                                index = 0
-                            elif (self.cols[i+k][j+m] == "O"):
-                                index = 1
-
-                            fours[index][k] += 1
-                            fours[index][m+4] += 1
-                            if (k == m):
-                                fours[index][8] += 1
-                            elif (k == 3-m):
-                                fours[index][9] += 1
-
-                for k in xrange(0,10):
-                    if (fours[0][k] == 4) or (fours[1][k] == 4):
-                        flag = True
-        return flag
+        for four in self.fours[self.other_player()]:
+            if self.cols[(four[0])[1]][(four[0])[0]] == self.cols[(four[1])[1]][(four[1])[0]] == self.cols[(four[2])[1]][(four[2])[0]] == self.cols[(four[3])[1]][(four[3])[0]] == self.other_player():
+                print "GAME OVER"
+                return True
+        return False
 
 def multiplayer():
     b = Board()
     b.display_board
-    while(True):
+    while(not b.winning()):
         play = input("Where to play?: ")
         b.play(play-1)
         b.display_board()
@@ -264,7 +241,7 @@ def singleplayer():
         b.display_board()
 
 def main():
-    multiplayer()
+    singleplayer()
 
 if __name__ == "__main__":
     main ()
