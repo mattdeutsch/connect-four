@@ -16,7 +16,7 @@ def multiplayer():
 
 def singleplayer():
     cls()
-    b = board_gui.Board()
+    b = board.Board()
     eng = engine.Engine()
     b.display_board
 
