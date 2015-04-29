@@ -1,57 +1,52 @@
+# TO-DO LIST:
+#   - Graphics Interface (ME - this file)
+#   - Features Working Nicely (MATT)
+#   - Perfect Algorithm (MATT)
+#   - Machine Learning (ME)
+#   - Abstractions in the Code (ME/MATT)
+
 from copy import copy, deepcopy
 import random
+import os 
+import wx
 
-INFINITY = 100
+def cls():
+    os.system(['clear','cls'][os.name == 'nt'])
+
 random.seed()
-
 COLSNUM = 7
 ROWSNUM = 6
+INFINITY = 100
 
-def negamax(board, depth, color):
-    #print "STARTING MINIMAX"
-    score = board.get_score()
+class MainWindow(wx.Frame):
+    """ We simply derive a new class of Frame. """
+    def __init__(self, parent, title):
+        wx.Frame.__init__(self, parent, title=title, size=(800,720))
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Show(True)
 
-    if depth == 0:
-        return (color * score, None)
-    else:
-        maxValue = -INFINITY
-        maxMove = None
+    def OnPaint(self, e):
+        dc = wx.PaintDC(self)
+        for i in range(0,6):
+            for j in range(0,7):
+                dc.DrawRectangle(50+j*100, 50+i*100, 100, 100)
+                self.Bind(wx.EVT_KEY_DOWN, self.DrawRect(j,i))
 
-        for i in xrange(0,7):
-            c = deepcopy(board)
-            if (not board.cannot_play_in(i)):
-                oldValue = maxValue
-                oldMove = maxMove
-
-                try:
-                    c.play(i)
-                    (scr, move) = negamax(c, depth - 1, -1*color)
-                    scr = -scr
-
-                    #print "scr: {}   -   maxValue: {}".format(scr, maxValue)
-
-                    if scr >= maxValue:
-                        maxValue = scr
-                        maxMove = i
-
-                    #print "{}{}".format("maxValue: ", maxValue)
-                    #print "{}{}".format("maxMove: ", maxMove)
-
-                except ValueError, e:
-                    if e.message == "ColumnFull":
-                        maxValue = oldValue
-                        maxMove = oldMove
-                    else:
-                        raise ValueError, e
-
-        return (maxValue, maxMove)
-
+    def DrawRect(self, event):
+        key = event.GetKeyCode()
+        
+        dc = wx.PaintDC(self)
+        dc.SetBrush(wx.RED_BRUSH)
+        dc.DrawRectangle(50+100*i, 50+100*j, 100, 100)
 
 class Board(object):
     """docstring for Board"""
     def __init__(self):
         super(Board, self).__init__()
         self.reset()
+        app = wx.App(False)
+        frame = MainWindow(None, "Connect Four!")
+        app.MainLoop()
 
     def reset(self):
         b = ['.' for c in xrange(0,6)]
@@ -84,7 +79,6 @@ class Board(object):
     def cannot_play_in(self, col):
         return not ('.' in self.cols[col])
 
-
     def get_player(self):
         return self.current_player
 
@@ -114,9 +108,9 @@ class Board(object):
         if (not self.cannot_play_in(col)):
             row = self.lowest_available(col)
             self.cols[col][row] = self.current_player
-            print len(self.fours["O"])
+            #print len(self.fours["O"])
             self.remove_fours(col, row)
-            print len(self.fours["O"])
+            #print len(self.fours["O"])
             self.switch_player()
         else:
             raise ValueError("ColumnFull")
@@ -188,60 +182,9 @@ class Board(object):
     def winning(self):
         for four in self.fours[self.other_player()]:
             if self.cols[(four[0])[1]][(four[0])[0]] == self.cols[(four[1])[1]][(four[1])[0]] == self.cols[(four[2])[1]][(four[2])[0]] == self.cols[(four[3])[1]][(four[3])[0]] == self.other_player():
+                print ""
+                self.display_board
                 print "GAME OVER"
                 return True
         return False
 
-def multiplayer():
-    b = Board()
-    b.display_board
-    while(not b.winning()):
-        play = input("Where to play?: ")
-        b.play(play-1)
-        b.display_board()
-
-def singleplayer():
-    b = Board()
-    b.display_board
-
-    while(not b.winning()):
-        while(b.get_player() == "X"):
-            flag = 0
-            while (flag == 0):
-                try:
-                    play = input("Where to play?: ")
-                    flag = 1
-                except NameError as e:
-                    print "Type in an INTEGER!"
-                    flag = 0
-
-            try:
-                b.play(play-1)
-            except ValueError as e:
-                if e.message == "ColumnFull":
-                    print "This column is already full. Please pick a different one."
-                else:
-                    raise ValueError(e)
-            except AssertionError:
-                print "Type in a valid integer!"
-
-        (score, move) = negamax(b, 2, 1)
-        if (move is not None):
-            try:
-                print
-                b.play(move)
-            except ValueError as e:
-                if e.message == "ColumnFull":
-                    pass
-                else:
-                    raise ValueError(e)
-        else:
-            b.play_random()
-
-        b.display_board()
-
-def main():
-    singleplayer()
-
-if __name__ == "__main__":
-    main ()
