@@ -1,5 +1,6 @@
-from copy import copy, deepcopy
-import random
+import board
+import engine
+import os 
 
 INFINITY = 100
 random.seed()
@@ -268,16 +269,22 @@ class Board(object):
     def presence_difference(self):
         return self.present_in() - self.opponent_present_in()
 
+def cls():
+    os.system(['clear','cls'][os.name == 'nt'])
+
 def multiplayer():
-    b = Board()
+    cls()
+    b = board.Board()
     b.display_board
-    while(True):
+    while(not b.winning()):
         play = input("Where to play?: ")
         b.play(play-1)
         b.display_board()
 
 def singleplayer():
-    b = Board()
+    cls()
+    b = board.Board()
+    eng = engine.Engine()
     b.display_board
 
     while(not b.winning()):
@@ -300,24 +307,30 @@ def singleplayer():
                     raise ValueError(e)
             except AssertionError:
                 print "Type in a valid integer!"
+            cls()
+            b.display_board()
 
-        (score, move) = negamax(b, 2, 1)
-        if (move is not None):
-            try:
-                print
-                b.play(move)
-            except ValueError as e:
-                if e.message == "ColumnFull":
-                    pass
-                else:
-                    raise ValueError(e)
-        else:
-            b.play_random()
 
-        b.display_board()
+        if (not b.winning()):
+            (score, move, flag) = eng.getBestMove(b, 4)
+            if (move is not None):
+                try:
+                    if (not flag):
+                        b.play_random()
+                    else:
+                        b.play(move)
+                except ValueError as e:
+                    if e.message == "ColumnFull":
+                        pass
+                    else:
+                        raise ValueError(e)
+            else:
+                b.play_random()
+            print ""
+            b.display_board()
 
 def main():
-    multiplayer()
+    singleplayer()
 
 if __name__ == "__main__":
     main ()
