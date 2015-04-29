@@ -17,7 +17,7 @@ def negamax(board, depth, color):
         maxValue = -INFINITY
         maxMove = None
 
-        for i in range(0,7):
+        for i in xrange(0,7):
             c = deepcopy(board)
             if (not board.cannot_play_in(i)):
                 oldValue = maxValue
@@ -154,16 +154,16 @@ class Board(object):
     def get_score(self):
         score = 0
 
-        for i in range(0, COLSNUM - 3):
-            for j in range(0, ROWSNUM - 3):
+        for i in xrange(0, COLSNUM - 3):
+            for j in xrange(0, ROWSNUM - 3):
                 fours = [[],[]]
 
-                for x in range (0,10):
+                for x in xrange (0,10):
                     fours[0].append(0)
                     fours[1].append(0)
 
-                for k in range(0,4):
-                    for m in range(0,4):
+                for k in xrange(0,4):
+                    for m in xrange(0,4):
                         if (self.cols[i+k][j+m] != "."):
                             if (self.cols[i+k][j+m] == "X"):
                                 index = 0
@@ -177,7 +177,7 @@ class Board(object):
                             elif (k == 3-m):
                                 fours[index][9] += 1
 
-                for k in range(0,10):
+                for k in xrange(0,10):
                     if (fours[0][k] == 4):
                         return -1
                     elif (fours[1][k] == 4):
@@ -187,16 +187,16 @@ class Board(object):
     def winning(self):
         flag = False
 
-        for i in range(0, COLSNUM - 3):
-            for j in range(0, ROWSNUM - 3):
+        for i in xrange(0, COLSNUM - 3):
+            for j in xrange(0, ROWSNUM - 3):
                 fours = [[],[]]
 
-                for x in range (0,10):
+                for x in xrange (0,10):
                     fours[0].append(0)
                     fours[1].append(0)
 
-                for k in range(0,4):
-                    for m in range(0,4):
+                for k in xrange(0,4):
+                    for m in xrange(0,4):
                         if (self.cols[i+k][j+m] != "."):
                             if (self.cols[i+k][j+m] == "X"):
                                 index = 0
@@ -210,7 +210,7 @@ class Board(object):
                             elif (k == 3-m):
                                 fours[index][9] += 1
 
-                for k in range(0,10):
+                for k in xrange(0,10):
                     if (fours[0][k] == 4) or (fours[1][k] == 4):
                         flag = True
         return flag
