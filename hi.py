@@ -66,7 +66,7 @@ def singleplayer():
             b.display_board()
 
 def main():
-    singleplayer()
+     singleplayer()
 
 if __name__ == "__main__":
     main ()

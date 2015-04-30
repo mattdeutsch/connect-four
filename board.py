@@ -139,13 +139,11 @@ class Board(object):
 
     def winning(self):
         for four in self.fours[self.other_player()]:
-            if (self.cols[(four[0])[1]][(four[0])[0]] == 
-               self.cols[(four[1])[1]][(four[1])[0]] == 
-               self.cols[(four[2])[1]][(four[2])[0]] == 
-               self.cols[(four[3])[1]][(four[3])[0]] == 
-               self.other_player()):
-                print ""
-                self.display_board
+            flag = True
+            for i in xrange(0,4):
+                if not(self.cols[(four[i])[1]][(four[i])[0]] == self.other_player()):
+                    flag = False
+            if flag == True:
                 print "GAME OVER"
                 return True
         return False
