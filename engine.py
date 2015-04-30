@@ -55,4 +55,7 @@ class Engine(object):
                 if (scr >= alpha):
                     alpha = scr
                     maxMove = i
+
+                if (alpha >= beta):
+                    return (alpha, maxMove, flag)
         return (alpha, maxMove, flag)

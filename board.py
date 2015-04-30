@@ -1,9 +1,9 @@
 # TO-DO LIST:
-#   - Graphics Interface (ME - see board_gui)
-#   - Features Working Nicely (MATT)
-#   - Perfect Algorithm (MATT)
-#   - Machine Learning (ME)
-#   - Abstractions in the Code (ME/MATT)
+#   - Graphics Interface 
+#   - Features Working Nicely
+#   - Perfect Algorithm
+#   - Machine Learning
+#   - Abstractions in the Code
 
 from copy import copy, deepcopy
 import random
@@ -64,12 +64,10 @@ class Board(object):
             self.current_player = "X"
 
     def other_player(self):
-        other_player = ""
         if self.current_player == "X":
-            other_player = "O"
+            return "O"
         else:
-            other_player = "X"
-        return other_player
+            return "X"
 
 
     def lowest_available(self, col):
@@ -122,43 +120,106 @@ class Board(object):
         self.play(x)
 
     def get_score(self):
-        score = 0
+        for four in self.fours[self.other_player()]:
+            if (self.cols[(four[0])[1]][(four[0])[0]] == 
+                self.cols[(four[1])[1]][(four[1])[0]] == 
+                self.cols[(four[2])[1]][(four[2])[0]] == 
+                self.cols[(four[3])[1]][(four[3])[0]] == 
+                self.other_player()):
+                return -1
 
-        for i in xrange(0, COLSNUM - 3):
-            for j in xrange(0, ROWSNUM - 3):
-                fours = [[],[]]
-
-                for x in xrange (0,10):
-                    fours[0].append(0)
-                    fours[1].append(0)
-
-                for k in xrange(0,4):
-                    for m in xrange(0,4):
-                        if (self.cols[i+k][j+m] != "."):
-                            if (self.cols[i+k][j+m] == "X"):
-                                index = 0
-                            elif (self.cols[i+k][j+m] == "O"):
-                                index = 1
-
-                            fours[index][k] += 1
-                            fours[index][m+4] += 1
-                            if (k == m):
-                                fours[index][8] += 1
-                            elif (k == 3-m):
-                                fours[index][9] += 1
-
-                for k in xrange(0,10):
-                    if (fours[0][k] == 4):
-                        return -1
-                    elif (fours[1][k] == 4):
-                        return 1
-        return score
+        for four in self.fours[self.current_player]:
+            if (self.cols[(four[0])[1]][(four[0])[0]] == 
+                self.cols[(four[1])[1]][(four[1])[0]] == 
+                self.cols[(four[2])[1]][(four[2])[0]] == 
+                self.cols[(four[3])[1]][(four[3])[0]] == 
+                self.other_player()):
+                return 1
+        return 0
 
     def winning(self):
         for four in self.fours[self.other_player()]:
-            if self.cols[(four[0])[1]][(four[0])[0]] == self.cols[(four[1])[1]][(four[1])[0]] == self.cols[(four[2])[1]][(four[2])[0]] == self.cols[(four[3])[1]][(four[3])[0]] == self.other_player():
+            if (self.cols[(four[0])[1]][(four[0])[0]] == 
+               self.cols[(four[1])[1]][(four[1])[0]] == 
+               self.cols[(four[2])[1]][(four[2])[0]] == 
+               self.cols[(four[3])[1]][(four[3])[0]] == 
+               self.other_player()):
                 print ""
                 self.display_board
                 print "GAME OVER"
                 return True
         return False
+
+    # Heuristics/Features
+    # Normalized such that best case for X => 1, best case for 0 => -1
+    def fours_left(self):
+        return 2 * len(self.fours["X"])/69 - 1
+
+    def fours_left_opponent(self):
+        return 2 * (1 - len(self.fours["O"])/69) - 1
+
+    # This should be normalized to something better I think...
+    def fours_difference(self):
+        return 2 * (len(self.fours["X"]) - len(self.fours["O"]))/69 - 1
+
+    # A helper function.
+    def how_many_in(self, four, player):
+        tally = 0
+        for (row, col) in four:
+            if self.cols[col][row] == player:
+                tally += 1
+        return tally
+
+    # A helper function.
+    def some_in_a_row(self, n, player):
+        ns = 0
+        for f in self.fours[player]:
+            if self.how_many_in(f, player) >= n:
+                ns += 1
+        if player == "X":
+            return 2 * len(ns)/69 - 1
+        else: # player == "O"
+            return 2 * (1 - len(ns)/69) - 1
+
+    # More heuristics/features.
+    def important_threes(self):
+        return self.some_in_a_row(3, "X")
+
+    def important_threes_opponent(self):
+        return self.some_in_a_row(3, "O")
+
+    def important_threes_difference(self):
+        return self.important_threes() - self.important_threes_difference()
+
+    def important_twos(self):
+        return self.some_in_a_row(2, "X")
+
+    def important_twos_opponent(self):
+        return self.some_in_a_row(2, "X")
+
+    def important_twos_difference(self):
+        return self.important_twos() - self.important_twos_opponent()
+
+    def present_in(self):
+        return self.some_in_a_row(1, "X")
+
+    def opponent_present_in(self):
+        return self.some_in_a_row(1, "O")
+
+    def presence_difference(self):
+        return self.present_in() - self.opponent_present_in()
+
+    def x_odd_threats(self):
+        odd_threat = False
+        for f in self.fours["X"]:
+            if self.how_many_in(f, "X") == 3:
+                for (row, col) in f:
+                    if (self.cols[col][row] == ".") and row % 2 == 0:
+                        return True
+        return False
+
+    def zugzwang(self):
+        if self.x_odd_threats():
+            "X"
+        else:
+            "O"
