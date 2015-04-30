@@ -47,7 +47,7 @@ class Engine(object):
             c = deepcopy(board)
             if (not board.cannot_play_in(i)):
                 c.play(i)
-                scr = -self.PVS(c, depth - 1, alpha, beta, -1)
+                scr = -self.PVS(c, depth - 1, alpha, beta, 1)
 
                 if scr == -1:
                     flag = True

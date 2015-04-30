@@ -7,6 +7,15 @@ from copy import copy, deepcopy
 def cls():
     os.system(['clear','cls'][os.name == 'nt'])
 
+def which_mode():
+    cls()
+    mode = ""
+    while not("s" in mode or "m" in mode):
+        mode = raw_input("Singleplayer vs. the computer or multiplayer? (s/m):" )
+    if "s" in mode:
+        return singleplayer()
+    return multiplayer()
+
 def multiplayer():
     cls()
     b = board.Board()
@@ -66,7 +75,7 @@ def singleplayer():
             b.display_board()
 
 def main():
-    singleplayer()
+     which_mode()
 
 if __name__ == "__main__":
     main ()
