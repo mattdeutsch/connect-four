@@ -1,6 +1,7 @@
-import board
+import random
 import engine
-import os 
+import os
+from copy import copy, deepcopy 
 
 INFINITY = 100
 random.seed()
@@ -48,8 +49,21 @@ def negamax(board, depth, color):
         return (maxValue, maxMove)
 
 
+class Solution(object):
+    """A representation of a provable solution to a given threat"""
+    def __init__(self, threat, rule, extra_info):
+        super(Solution, self).__init__()
+        self.threat = threat
+        self.rule = rule
+        self.extra_info = extra_info
+
+    def compatible(self, sol2):
+        pass
+        
+
+
 class Board(object):
-    """docstring for Board"""
+    """keeps track of what has been played where, runs the game."""
     def __init__(self):
         super(Board, self).__init__()
         self.reset()
@@ -60,6 +74,7 @@ class Board(object):
         self.current_player = "X"
         self.fours = {"X": [], "O": []}
         self.init_fours()
+        self.zugzwang = "O"
 
     def init_fours(self):
         full_list = []
@@ -79,8 +94,6 @@ class Board(object):
         for row in xrange(3, 6):
             for col in xrange(0, 4):
                 full_list.append([(row, col), (row - 1, col + 1), (row - 2, col + 2), (row - 3, col + 3)])
-        for l in full_list:
-            print l
         assert(len(full_list) == 69)
         self.fours["X"] = full_list
         self.fours["O"] = deepcopy(full_list)
@@ -108,9 +121,7 @@ class Board(object):
         if (not self.cannot_play_in(col)):
             row = self.lowest_available(col)
             self.cols[col][row] = self.current_player
-            print len(self.fours["O"])
             self.remove_fours(col, row)
-            print len(self.fours["O"])
             self.switch_player()
         else:
             raise ValueError("ColumnFull")
@@ -228,20 +239,25 @@ class Board(object):
         return 2 * (len(self.fours["X"]) - len(self.fours["O"]))/69 - 1
 
     # A helper function.
+    def how_many_in(self, four, player):
+        tally = 0
+        for (row, col) in four:
+            if self.cols[col][row] == player:
+                tally += 1
+        return tally
+
+    # A helper function.
     def some_in_a_row(self, n, player):
         ns = 0
         for f in self.fours[player]:
-            how_many_in = 0
-            for (row, col) in f:
-                if self.cols[col][row] == player:
-                    how_many_in += 1
-            if how_many_in >= n:
+            if self.how_many_in(f, player) >= n:
                 ns += 1
         if player == "X":
             return 2 * len(ns)/69 - 1
         else: # player == "O"
             return 2 * (1 - len(ns)/69) - 1
 
+    # More heuristics/features.
     def important_threes(self):
         return self.some_in_a_row(3, "X")
 
@@ -269,12 +285,27 @@ class Board(object):
     def presence_difference(self):
         return self.present_in() - self.opponent_present_in()
 
+    def x_odd_threats(self):
+        odd_threat = False
+        for f in self.fours["X"]:
+            if self.how_many_in(f, "X") == 3:
+                for (row, col) in f:
+                    if (self.cols[col][row] == ".") and row % 2 == 0:
+                        return True
+        return False
+
+    def zugzwang(self):
+        if self.x_odd_threats():
+            "X"
+        else:
+            "O"
+
 def cls():
     os.system(['clear','cls'][os.name == 'nt'])
 
 def multiplayer():
     cls()
-    b = board.Board()
+    b = Board()
     b.display_board
     while(not b.winning()):
         play = input("Where to play?: ")
@@ -330,7 +361,7 @@ def singleplayer():
             b.display_board()
 
 def main():
-    singleplayer()
+    multiplayer()
 
 if __name__ == "__main__":
     main ()
