@@ -1,6 +1,7 @@
 import board
 import engine
 import os 
+import random
 
 INFINITY = 100
 random.seed()
@@ -97,6 +98,13 @@ class Board(object):
         else:
             self.current_player = "X"
 
+    def other_player(self):
+        other_player = ""
+        if self.current_player == "X":
+            other_player = "O"
+        else:
+            other_player = "X"
+
     def lowest_available(self, col):
         for i, sq in enumerate(self.cols[col]):
             if sq == '.':
@@ -185,35 +193,15 @@ class Board(object):
         return score
 
     def winning(self):
-        flag = False
-
-        for i in xrange(0, COLSNUM - 3):
-            for j in xrange(0, ROWSNUM - 3):
-                fours = [[],[]]
-
-                for x in xrange (0,10):
-                    fours[0].append(0)
-                    fours[1].append(0)
-
-                for k in xrange(0,4):
-                    for m in xrange(0,4):
-                        if (self.cols[i+k][j+m] != "."):
-                            if (self.cols[i+k][j+m] == "X"):
-                                index = 0
-                            elif (self.cols[i+k][j+m] == "O"):
-                                index = 1
-
-                            fours[index][k] += 1
-                            fours[index][m+4] += 1
-                            if (k == m):
-                                fours[index][8] += 1
-                            elif (k == 3-m):
-                                fours[index][9] += 1
-
-                for k in xrange(0,10):
-                    if (fours[0][k] == 4) or (fours[1][k] == 4):
-                        flag = True
-        return flag
+        for four in self.fours[self.other_player()]:
+            if (self.cols[(four[0])[1]][(four[0])[0]] ==
+               self.cols[(four[1])[1]][(four[1])[0]] ==
+               self.cols[(four[2])[1]][(four[2])[0]] ==
+               self.cols[(four[3])[1]][(four[3])[0]] ==
+               self.other_player):
+                print "GAME OVER"
+                return True
+        return False
 
     # Heuristics/Features
     # Normalized such that best case for X => 1, best case for 0 => -1
