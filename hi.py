@@ -9,9 +9,10 @@ def cls():
 
 def which_mode():
     cls()
-    mode = raw_input("Singleplayer vs. the computer or multiplayer? (s/m):" )
-    assert (mode == 's' or mode == 'm')
-    if mode == 's':
+    mode = ""
+    while not("s" in mode or "m" in mode):
+        mode = raw_input("Singleplayer vs. the computer or multiplayer? (s/m):" )
+    if "s" in mode:
         return singleplayer()
     return multiplayer()
 
