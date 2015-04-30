@@ -217,9 +217,3 @@ class Board(object):
                     if (self.cols[col][row] == ".") and row % 2 == 0:
                         return True
         return False
-
-    def zugzwang(self):
-        if self.x_odd_threats():
-            "X"
-        else:
-            "O"

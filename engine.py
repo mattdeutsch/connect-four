@@ -16,7 +16,7 @@ class Engine(object):
         if depth == 0 or score == 1:
             return (color * score)
         else:
-            for i in range(0,7):
+            for i in xrange(0,7):
                 c = deepcopy(board)
                 if (not board.cannot_play_in(i)):
                     c.play(i)
@@ -43,7 +43,7 @@ class Engine(object):
 
         flag = False
 
-        for i in range(0,7):
+        for i in xrange(0,7):
             c = deepcopy(board)
             if (not board.cannot_play_in(i)):
                 c.play(i)
