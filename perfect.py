@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import copy, deepcopy
 import random
 
 class Problem(object):
@@ -12,6 +12,10 @@ class Problem(object):
 
 	def add_solution(self, s):
 		self.solutions.append(s)
+
+	# Required in order to have it be a key in a dict.
+	def __hash__(self):
+		return str(self.four)
 
 	def __eq__(self, other):
 		return self.four == other.four
@@ -33,7 +37,14 @@ class Solution(object):
 		# We threat threats as a list of four in a rows. May change this later.
 		self.threats = threats
 
-	# Necessary to make the object hashable.
+	def compatible(self, other):
+		# Wow this is not simple. TODO.
+		pass
+
+	# Required in order to have it be the key in a dict.
+	def __hash__(self):
+		return (self.rule, str(self.squares))
+
 	def __eq__(self, other):
 		return (self.rule == other.rule) and (self.squares == other.squares)
 		
@@ -77,7 +88,49 @@ class Perfect(object):
 		assert board.current_player == "X"
 		solutions = self.create_solution_list(board)
 		problems = self.create_problem_list(board, solutions)
+		# The graph is a dictionary with keys of type Solution or Problem
+		#   and values of type set.
 		graph = {}
-		for s in solutions:
-			graph[s] = 
+		# this may be the bottleneck of the algorithm
+		for s1 in solutions:
+			graph[s1] = set(s1.threats)
+			for s2 in solutions:
+				if not s1.compatible(s2):
+					graph[s1].add(s2)
+		self.determine_solution_set(graph, set())
+
+	def determine_solution_set(self, graph, chosen_sols):
+		"""
+		The purpose of this function is to take the graph of problems and
+		solutions and return a set of compatible solutions which collectively
+		solve every problem.
+		"""
+		problems = {k for k, v in graph if isinstance(k, Problem)}
+		if problems == set():
+			return chosen_sols
+		else:
+			# Determine the problem with the fewest solutions.
+			most_difficult_problem = None
+			for problem in problems:
+				# If we cannot find a solution to a given problem, we have made
+				# a mistake or the board is not in a drawable state for black.
+				if len(graph[problem]) == 0:
+					return None
+				elif most_difficult_problem is None:
+					most_difficult_problem = problem
+				elif len(graph[problem]) > len(graph[most_difficult_problem]):
+					most_difficult_problem = problem
+
+			for soln in graph[most_difficult_problem]:
+				new_graph = copy(graph)
+				del new_graph[soln]
+				# Deleting every neighbor of our chosen node solves two problems at once.
+				# It removes from the graph every problem that this solution solves.
+				# It also removes every solution incompatible with our chosen one.
+				for nbr in graph[soln]:
+					del new_graph[nbr]
+				chosen = self.determine_solution_set(new_graph, chosen_sols.add(soln))
+				if chosen is not None:
+					return chosen
+			return None
 
