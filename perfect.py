@@ -65,7 +65,7 @@ class Perfect(object):
 		# If it's black's turn, check each move and see if it results in a draw.
 		#   yes -> Play one of these moves.
 		#   no  -> Doesn't matter, play randomly.
-		if player = "X":
+		if player == "X":
 			if self.p2_can_draw(board):
 				# May be replaced later by an actually random place on the board to play.
 				return None
@@ -81,7 +81,22 @@ class Perfect(object):
 								# Do not make any move that black can force a draw from.
 								if self.p2_can_draw(c):
 									good_choices.remove(i)
-				return random.choice(good_choices)
+				if len(good_choices) > 0:
+					return random.choice(good_choices)
+				else:
+					return None
+		else: #player == "O"
+			for i in xrange(0, 7):
+				good_choices = []
+				c = deepcopy(board)
+				if board.can_play_in(i):
+					c.play(i)
+					if self.p2_can_draw(c):
+						good_choices.append(i)
+				if len(good_choices) != 0:
+					return random.choice(good_choices)
+				else:
+					return None
 
 	def p2_can_draw(self, board):
 		# The "X" here is not a mistake.
@@ -115,6 +130,8 @@ class Perfect(object):
 		solution_list += self.verticals(board)
 		solution_list += self.afterevens(board, solution_list)
 		solution_list += self.lowinverses(board)
+		solution_list += self.highinverses(board)
+		solution_list += self.baseclaims(board)
 
 	def claimevens(self, board):
 		# Rule 1: Claimevens.
@@ -196,31 +213,83 @@ class Perfect(object):
 						works_for_each_column = False
 				if works_for_each_column:
 					threats_solved.append(four)
-			solution_list.append(Solution("aftereven", [], aftereven_cols, threats_solved))
+			if len(threats_solved) > 0:
+				solution_list.append(Solution("aftereven", [], aftereven_cols, threats_solved))
 
 	def lowinverses(self, board):
 		for col in range(0, 7):
 			for col2 in range(col + 1, 7):
 				for row in [2, 4]:
 					for row2 in [2, 4]:
-						if (board.open(col, row) and
-							board.open(col, row-1) and
-							board.open(col2, row2) and
-							board.open(col2, row2 - 1)):
+						if (board.open(row, col) and
+							board.open(row - 1, col) and
+							board.open(row2, col2) and
+							board.open(row2 - 1, col2)):
 							threats_solved = []
 							for four in board.fours["X"]:
-								if ((col, row) in four and ((col2, row2) in four or (col, row-1) in four)):
+								if ((row, col) in four and ((row2, col2) in four or (row - 1, col) in four)):
 									threats_solved.append(four)
-								if ((col2, row2) in four and (col2, row2 - 1) in four):
+								if ((row2, col2) in four and (row2 - 1, col2) in four):
 									threats_solved.append(four)
-							solution_list.append(
-								Solution(
-									"lowinverse",
-									[(col, row), (col, row-1), (col2, row2), (col2, row2-1)],
-									[col, col2],
-									threats_solved
+							if len(threats_solved) > 0:
+								solution_list.append(
+									Solution(
+										"lowinverse",
+										[(row, col), (row - 1, col), (row2, col2), (row2 - 1, col2)],
+										[col, col2],
+										threats_solved
+									)
 								)
-							)
+
+	def highinverses(self, board):
+		for col in range(0, 7):
+			for col2 in range(col + 1, 7):
+				for row in [3, 5]:
+					for row2 in [3, 5]:
+						if (board.open(col, row) and
+							board.open(col, row - 1) and
+							board.open(col, rwo - 2) and
+							board.open(col2, row2) and
+							board.open(col2, row2 - 1) and
+							board.open(col2, row2 - 2)):
+							threats_solved = []
+							for four in board.fours["X"]:
+								if (col, row) in four and (col2, row2) in four:
+									threats_solved.append(four)
+								elif (col, row - 1) in four and (col2, row2 - 1) in four:
+									threats_solved.append(four)
+								elif (col, row) in four and (col, row - 1) in four:
+									threats_solved.append(four)
+								elif (col2, row2) in four and (col2, row2 - 1) in four:
+									threats_solved.append(four)
+								elif board.directly_playable(col, row - 2):
+									if (col, row - 2) in four and (col2, row2) in four:
+										threats_solved.append(four)
+								elif board.directly_playable(col2, row2 - 2):
+									if (col2, row2 - 2) in four and (col, row) in four:
+										threats_solved.append(four)
+							if len(threats_solved) > 0:
+								solution_list.append()
+
+	def baseclaims(self, board):
+		for col1 in xrange(0, 7):
+			for col2 in xrange(0, 7):
+				for col3 in xrange(0, 7):
+					if not col1 == col2 and not col1 == col3 and not col2 == col3:
+						if board.can_play_in(col1) and board.can_play_in(col2) and board.can_play_in(col3):
+							board.lowest_available(col1) = row1
+							board.lowest_available(col2) = row2
+							board.lowest_available(col3) = row3
+							if row1 % 2 = 0:
+								# The lowest in col1 is odd, next lowest is even.
+								threats_solved = []
+								for four in board.fours["X"]:
+									if (col1, row1 + 1) in four and (col2, row2) in four:
+										threats_solved.append(four)
+									elif (col1, row1 + 1) in four and (col3, row3) in four:
+										threats_solved.append(four)
+									elif (col2, row2)
+
 
 
 
