@@ -247,26 +247,26 @@ class Perfect(object):
 				for row in [3, 5]:
 					for row2 in [3, 5]:
 						if (board.open(col, row) and
-							board.open(col, row - 1) and
-							board.open(col, rwo - 2) and
-							board.open(col2, row2) and
-							board.open(col2, row2 - 1) and
-							board.open(col2, row2 - 2)):
+							board.open(row - 1, col) and
+							board.open(row - 2, col) and
+							board.open(row2, col2) and
+							board.open(row2 - 1, col2) and
+							board.open(row2 - 2, col2)):
 							threats_solved = []
 							for four in board.fours["X"]:
-								if (col, row) in four and (col2, row2) in four:
+								if (row, col) in four and (row2, col2) in four:
 									threats_solved.append(four)
-								elif (col, row - 1) in four and (col2, row2 - 1) in four:
+								elif (row - 1, col) in four and (row2 - 1, col2) in four:
 									threats_solved.append(four)
-								elif (col, row) in four and (col, row - 1) in four:
+								elif (row, col) in four and (row - 1, col) in four:
 									threats_solved.append(four)
-								elif (col2, row2) in four and (col2, row2 - 1) in four:
+								elif (row2, col2) in four and (row2 - 1, col2) in four:
 									threats_solved.append(four)
-								elif board.directly_playable(col, row - 2):
-									if (col, row - 2) in four and (col2, row2) in four:
+								elif board.directly_playable(row - 2, col):
+									if (row - 2, col) in four and (row2, col2) in four:
 										threats_solved.append(four)
-								elif board.directly_playable(col2, row2 - 2):
-									if (col2, row2 - 2) in four and (col, row) in four:
+								elif board.directly_playable(row2 - 2, col2):
+									if (row2 - 2, col2) in four and (row, col) in four:
 										threats_solved.append(four)
 							if len(threats_solved) > 0:
 								solution_list.append()
