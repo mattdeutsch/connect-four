@@ -54,6 +54,9 @@ class Board(object):
     def cannot_play_in(self, col):
         return not ('.' in self.cols[col])
 
+    def can_play_in(self, col):
+        return not self.cannot_play_in(col)
+
     def get_player(self):
         return self.current_player
 
@@ -74,6 +77,18 @@ class Board(object):
         for i, sq in enumerate(self.cols[col]):
             if sq == '.':
                 return i
+
+    def directly_playable(self, row, col):
+        return self.lowest_available(col) == row
+
+    def filled(self, row, col):
+        return self.cols[col][row] != "."
+
+    def open(self, row, col):
+        return not self.filled(row, col)
+
+    def open_in_four(self, four):
+        return [sq for sq in four if self.open(*sq)]
 
     # 1-indexed cols
     def play(self, col):

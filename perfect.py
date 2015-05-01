@@ -31,9 +31,10 @@ class Solution(object):
 	the solution with other solutions involving the same squares later on
 	in the proper manner.
 	"""
-	def __init__(self, rule, squares, threats):
+	def __init__(self, rule, squares, columns, threats):
 		self.rule = rule
 		self.squares = squares
+		self.columns = columns
 		# We threat threats as a list of four in a rows. May change this later.
 		self.threats = threats
 
@@ -72,10 +73,10 @@ class Perfect(object):
 				good_choices = range(0, 7)
 				for i in xrange(0, 7):
 					c = deepcopy(board)
-					if (not board.cannot_play_in(i)):
+					if board.can_play_in(i):
 						c.play(i)
 						for j in xrange(0, 7):
-							if (not board.cannot_play_in(j)):
+							if board.can_play_in(j):
 								c.play(j)
 								# Do not make any move that black can force a draw from.
 								if self.p2_can_draw(c):
@@ -88,6 +89,7 @@ class Perfect(object):
 		assert board.current_player == "X"
 		solutions = self.create_solution_list(board)
 		problems = self.create_problem_list(board, solutions)
+		self.refine_solutions(solutions, problems)
 		# The graph is a dictionary with keys of type Solution or Problem
 		#   and values of type set.
 		graph = {}
@@ -98,6 +100,130 @@ class Perfect(object):
 				if not s1.compatible(s2):
 					graph[s1].add(s2)
 		self.determine_solution_set(graph, set())
+
+
+
+	def create_solution_list(self, board):
+		"""
+		We check for instances of each of our 9 rules.
+		Whenever we find one, we add it to the list.
+		See section 6 of http://www.informatik.uni-trier.de/~fernau/DSL0607/Masterthesis-Viergewinnt.pdf
+		"""
+		solution_list = []
+		solution_list += self.claimevens(board)
+		solution_list += self.baseinverses(board)
+		solution_list += self.verticals(board)
+		solution_list += self.afterevens(board, solution_list)
+		solution_list += self.lowinverses(board)
+
+	def claimevens(self, board):
+		# Rule 1: Claimevens.
+		for col in xrange(0, 7):
+			for row in [1, 3, 5]:
+				if board.open(row - 1, col):
+					# This is a valid solution.
+					# Figure out threats this solves.
+					threats_solved = []
+					for four in board.fours["X"]:
+						if (row, col) in four:
+							threats_solved.append(four)
+					if len(threats_solved) > 0:
+						solution_list.append(Solution("claimeven", [(row - 1, col), (row, col)], [], threats_solved))
+
+	def baseinverses(self, board):
+		# Rule 2: Baseinverses.
+		for col in xrange(0, 7):
+			# Find all pairs of directly playable squares.
+			for col2 in xrange(col + 1, 7):
+				if (board.can_play_in(col)) and (board.can_play_in(col2)):
+					row = board.lowest_available(col)
+					row2 = board.lowest_available(col2)
+					threats_solved = []
+					for four in board.fours["X"]:
+						if (row, col) in four and (row2, col2) in four:
+							threats_solved.append(four)
+					if len(threats_solved) > 0:
+						solution_list.append(Solution("baseinverse", [(row, col), (row2, col2)], [], threats_solved))
+    
+    def verticals(self, board):
+		# Rule 3: Verticals.
+		for col in xrange(0, 7):
+			for row in [2, 4]:
+				if board.open(row - 1, col):
+					threats_solved = []
+					for four in board.fours["X"]:
+						if (row - 1, col) in four and (row, col) in four:
+							threats_solved.append(four)
+					if len(threats_solved) > 0:
+						solution_list.append(Solution("vertical", [(row - 1, col), (row, col)], [], threats_solved))
+
+	# Helper functions for afterevens.
+	def claimeven_at(self, sq, solutions_list):
+		# Hopefully this doesn't throw an index out of boudns error for non-claimevens.
+		claimeven_sqs = [soln.squares[1] for soln in solutions_list if soln.rule == "claimeven"]
+		return sq in claimeven_sqs
+
+	def square_in_col_and_above(self, row, col, four):
+		if len(four) == 0:
+			return None
+		else:
+			(r, c) = four[0]
+			if c == col and r >= row:
+				return (r, c)
+			else:
+				return self.square_in_col_and_above(row, col, four[1:])
+
+    def afterevens(self, board, solution_list):
+		# Rule 4: Aftereven.
+		# Find every group that can be completed by O by claimeven squares.
+		aftereven_groups = []
+		for own_four in board.fours["O"]:
+			bad_squares = [sq for sq in own_four if board.open(*sq) and not self.claimeven_at(sq, solution_list)]
+			if len(bad_squares) == 0:
+				aftereven_groups.append(own_four)
+		# For each aftereven group, add a Solution.
+		for g in aftereven_groups:
+			# Each aftereven group mitigates every threat with one open space in each aftereven column
+			# above the aftereven square.
+			open_squares = [sq for sq in g if board.open(*sq)]
+			aftereven_cols = [col for (row, col) in open_squares]
+			threats_solved = []
+			for four in board.fours["X"]:
+				works_for_each_column = True
+				for (row, col) in open_squares:
+					four_sq = self.square_in_col_and_above(row, col, four)
+					if four_sq is None:
+						works_for_each_column = False
+				if works_for_each_column:
+					threats_solved.append(four)
+			solution_list.append(Solution("aftereven", [], aftereven_cols, threats_solved))
+
+	def lowinverses(self, board):
+		for col in range(0, 7):
+			for col2 in range(col + 1, 7):
+				for row in [2, 4]:
+					for row2 in [2, 4]:
+						if (board.open(col, row) and
+							board.open(col, row-1) and
+							board.open(col2, row2) and
+							board.open(col2, row2 - 1)):
+							threats_solved = []
+							for four in board.fours["X"]:
+								if ((col, row) in four and ((col2, row2) in four or (col, row-1) in four)):
+									threats_solved.append(four)
+								if ((col2, row2) in four and (col2, row2 - 1) in four):
+									threats_solved.append(four)
+							solution_list.append(
+								Solution(
+									"lowinverse",
+									[(col, row), (col, row-1), (col2, row2), (col2, row2-1)],
+									[col, col2],
+									threats_solved
+								)
+							)
+
+
+
 
 	def determine_solution_set(self, graph, chosen_sols):
 		"""
