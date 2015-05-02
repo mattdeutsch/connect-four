@@ -49,12 +49,12 @@ def play_itself(code):
     #b.display_board()
 
     while(b.winning() == defs.INFINITY):
-        defs.AI_play(b, eng, 1, code, 2)
+        defs.AI_play(b, eng, -1, code, 2)
         #print ""
         #b.display_board()
 
         if (b.winning() == defs.INFINITY):
-            defs.AI_play(b, eng, -1, code, 2)
+            defs.AI_play(b, eng, 1, code, 2)
             #print ""
             #b.display_board()
 
@@ -109,9 +109,9 @@ def main():
             multiplayer()
 
         elif "t" in mode:
-            for i in xrange(100):
+            for i in xrange(10):
                 play_itself(1)
-            for i in xrange(100):
+            for i in xrange(10):
                 play_itself(3)
 
 if __name__ == "__main__":
