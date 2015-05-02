@@ -21,8 +21,18 @@ def multiplayer():
     b = board.Board()
     b.display_board
     while(not b.winning()):
-        play = input("Where to play?: ")
-        b.play(play-1)
+        try:
+            play = int(raw_input("Where to play? (From 1 to 7): "))
+        except ValueError:
+            print "Please play an integer from 1 to 7!"
+        try:
+            b.play(play-1)
+        except UnboundLocalError:
+            print "Please play an integer"
+        except ValueError:
+            print "Please pick an integer."
+        except AssertionError:
+            print "Please pick a number from 1 to 7"
         cls()
         b.display_board()
 
@@ -37,8 +47,10 @@ def singleplayer():
             flag = 0
             while (flag == 0):
                 try:
-                    play = input("Where to play?: ")
+                    play = int(raw_input("Where to play?: "))
                     flag = 1
+                except ValueError:
+                    print "Please play an integer from 1 to 7!"
                 except NameError as e:
                     print "Type in an INTEGER!"
                     flag = 0
