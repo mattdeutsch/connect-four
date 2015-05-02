@@ -76,7 +76,10 @@ def AI_play(b, eng, AI_color, code, depth, first):
 
     elif code == 2:
         (score, move, flag) = eng.getBestMove(b, depth, AI_color, False)
-        b.play(move)
+        if (not flag and (first or random.random() < 0.1)):
+            b.play_random()
+        else:
+            b.play(move)
         b.update_features()
 
     elif code == 3:
