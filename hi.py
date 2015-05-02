@@ -11,7 +11,7 @@ def multiplayer():
 
     while(b.winning() == defs.INFINITY):
         defs.human_play(b)
-        print ""
+        defs.cls()
         b.display_board()
         
     defs.print_winner(b.winning())
@@ -25,46 +25,48 @@ def singleplayer(play_as, code):
 
     if play_as == "X":
         AI_color = 1
+        first = False
     else:
         AI_color = -1
+        first = True
+
 
     while(b.winning() == defs.INFINITY):
         while(play_as == b.get_player()):
             defs.human_play(b)
-            print ""
+            defs.cls()
             b.display_board()
 
         if (b.winning() == defs.INFINITY):
-            defs.AI_play(b, eng, AI_color, 3, 4)
-            print ""
+            defs.AI_play(b, eng, AI_color, 3, 4, first)
+            defs.cls()
+            first = False
             b.display_board()
 
     defs.print_winner(b.winning())
 
 # This function plays itself as a way of training the Neural Network.
 def play_itself(code):
-    #defs.cls()
     b = board.Board()
     eng = engine.Engine()
-    #b.display_board()
+    first_X = True
+    first_O = True
 
     while(b.winning() == defs.INFINITY):
-        defs.AI_play(b, eng, -1, code, 2)
-        #print ""
-        #b.display_board()
+        defs.AI_play(b, eng, -1, code, 2, first_X)
+        first_X = False
 
         if (b.winning() == defs.INFINITY):
-            defs.AI_play(b, eng, 1, code, 2)
-            #print ""
-            #b.display_board()
+            defs.AI_play(b, eng, 1, code, 2, first_O)
+            first_O = False
 
     defs.print_winner(b.winning())
     defs.train(b)
 
 def main():
-    defs.cls()
     mode = ""
     while not("s" in mode or "m" in mode):
+        defs.cls()
         try:
             mode = raw_input("Singleplayer, Multiplayer or Trainer? (s/m/t): ")
             assert (mode in ["s","m","t"])
@@ -109,9 +111,9 @@ def main():
             multiplayer()
 
         elif "t" in mode:
-            for i in xrange(10):
+            for i in xrange(100):
                 play_itself(1)
-            for i in xrange(10):
+            for i in xrange(100):
                 play_itself(3)
 
 if __name__ == "__main__":

@@ -3,15 +3,29 @@ import hidden
 from copy import deepcopy
 
 class NeuralNet(object):
-    def __init__(self, inputs, index, init_hweights, init_oweight, init_helig, init_oelig, final): # inputs: board.get_features()
+    """
+    This is the neural network. It takes as arguments the board states,
+    an index corresponding to each board state, an initial weight matrix
+    for the hidden neurons, an initial weight vector for the output neuron,
+    and the initial eligibility traces. Instead of using Backpropagation,
+    the TD-Gammon algorithm allows us to derive an explicit formula for this.
+
+    The methods here are fairly straightforward: forward in the network, backward,
+    update and train. In train, we use the rewards as the outputs of the next 
+    functions, as described in the writeup and cited in the TD-Gammon writeup
+    by Tesauro.
+    """
+
+    def __init__(self, inputs, index, init_hweights, init_oweight, 
+                init_helig, init_oelig, final):
         self.inputs = inputs
-        self.final = final # 1 if White won, -1 if Black won
+        self.final = final 
         self.num_states = len(inputs)
         self.index = index
-        self.init_hweights = init_hweights # weights for inputs; equivalent to v
-        self.init_oweight = init_oweight # weight for output; equivalent to w
-        self.init_helig = init_helig #initial eligibility traces; equivalent to ev
-        self.init_oelig = init_oelig # equivalent to ew
+        self.init_hweights = init_hweights
+        self.init_oweight = init_oweight
+        self.init_helig = init_helig 
+        self.init_oelig = init_oelig
         self.error = 0.0
 
         for i in xrange(self.num_states):
@@ -20,7 +34,11 @@ class NeuralNet(object):
         self.hid_neurons = []
 
         for i in xrange(defs.NUM_HIDDEN):
-            self.hid_neurons.append(hidden.HiddenLayer(self.inputs, self.index, self.init_hweights[i], self.init_oweight[i], self.init_helig[i], self.init_oelig[i]))
+            self.hid_neurons.append(
+                hidden.HiddenLayer(self.inputs, self.index,
+                self.init_hweights[i], self.init_oweight[i], 
+                self.init_helig[i], self.init_oelig[i])
+                )
 
         self.forward()
         self.old_output = self.output
@@ -32,7 +50,8 @@ class NeuralNet(object):
 
         self.output = 0.0
         for i in xrange(defs.NUM_HIDDEN):
-            self.output += self.hid_neurons[i].get_output() * self.hid_neurons[i].get_oweight()
+            self.output += self.hid_neurons[i].get_output() * \
+                           self.hid_neurons[i].get_oweight()
 
         self.output += defs.BIAS
         self.output = defs.sigmoid(self.output)
@@ -51,7 +70,9 @@ class NeuralNet(object):
         if (self.index == self.num_states)-1:
             reward = self.final
         else:
-            next = NeuralNet(self.inputs, self.index+1, self.init_hweights, self.init_oweight, self.init_helig, self.init_oelig, self.final)
+            next = NeuralNet(self.inputs, self.index+1, self.init_hweights,
+                             self.init_oweight, self.init_helig, 
+                             self.init_oelig, self.final)
             reward = next.train()
 
         self.error = reward + defs.GAMMA * self.output - self.old_output

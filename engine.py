@@ -2,7 +2,8 @@ from copy import copy, deepcopy
 import defs
 
 class Engine(object):
-    """ docstring for Engine
+    """
+    docstring for Engine
 
     This defines the core of this AI, the PVS algorithm (Principal Variation 
     Search). It is very similar to Minimax with Alpha-Beta Pruning, but can 
@@ -28,7 +29,8 @@ class Engine(object):
 
     getBestMove: board -> depth -> (float, float, bool)
         This method is very similar to the main loop described above, but it has
-        to get the best move as well, so that our AI knows which move to play. """
+        to get the best move as well, so that our AI knows which move to play. 
+    """
 
     def PVS(self, board, depth, alpha, beta, color, machine_weights):
         # Gets score for this current board, and sets the maxValue to -INF.
@@ -45,11 +47,14 @@ class Engine(object):
                 c = deepcopy(board)
                 c.play(i)
                 if (i == 0):
-                    scr = -self.PVS(c, depth - 1, -beta, -alpha, -color, machine_weights)
+                    scr = -self.PVS(c, depth - 1, -beta, -alpha, 
+                                    -color, machine_weights)
                 else:
-                    scr = -self.PVS(c, depth - 1, -alpha-0.1, -alpha, -color, machine_weights)
+                    scr = -self.PVS(c, depth - 1, -alpha-0.1, -alpha, 
+                                    -color, machine_weights)
                     if (alpha < scr < beta):
-                        scr = -self.PVS(c, depth - 1, -beta, -scr, -color, machine_weights)
+                        scr = -self.PVS(c, depth - 1, -beta, -scr, 
+                                        -color, machine_weights)
 
                 alpha = max(alpha, scr)
 

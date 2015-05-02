@@ -57,17 +57,18 @@ def human_play(b):
         play = int(raw_input("Where to play? (From 1 to 7): "))
         b.play(play-1)
         b.update_features()
-    except ValueError:
-        print "Please play an integer from 1 to 7!"
+    except ValueError as e:
+        if e.message == "ColumnFull":
+            print "This column is full."
     except UnboundLocalError:
         print "Please play an integer from 1 to 7!"
     except AssertionError:
         print "Please play an integer from 1 to 7!"
 
-def AI_play(b, eng, AI_color, code, depth):
+def AI_play(b, eng, AI_color, code, depth, first):
     if code == 1:
         (score, move, flag) = eng.getBestMove(b, depth, AI_color, True)
-        if (not flag):
+        if (not flag and first):
             b.play_random()
         else:
             b.play(move)
@@ -80,5 +81,8 @@ def AI_play(b, eng, AI_color, code, depth):
 
     elif code == 3:
         (score, move, flag) = eng.getBestMove(b, depth, AI_color, True)
-        b.play(move)
+        if (not flag and (first or random.random() < 0.1)):
+            b.play_random()
+        else:
+            b.play(move)
         b.update_features()

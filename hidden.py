@@ -3,13 +3,20 @@ import math
 from copy import deepcopy
 
 class HiddenLayer():
-	def __init__(self, inputs, index, init_hweights, init_oweight, init_helig, init_oelig): # inputs: board.get_features()
+	"""
+	This is simply a hidden neuron of a neuron network. The functions are
+	straightforward: forward, backward, update, etc.
+
+	The arguments are the same as in NeuralNet.
+	"""
+	def __init__(self, inputs, index, init_hweights, init_oweight,
+				 init_helig, init_oelig):
 		self.inputs = inputs
 		self.index = index
-		self.h_weights = init_hweights # weights for inputs; h_weights[i] = v[i][j]
-		self.o_weight = init_oweight # weight for output; o_weight = w[j]
-		self.h_elig = init_helig #initial eligibility traces; h_elig[i] = ev[i][j]
-		self.o_elig = init_oelig # equivalent to ew; o_elig = ew[j]
+		self.h_weights = init_hweights 
+		self.o_weight = init_oweight 
+		self.h_elig = init_helig
+		self.o_elig = init_oelig 
 
 	def forward(self):
 		self.output = 0.0
@@ -26,7 +33,9 @@ class HiddenLayer():
 		diff_sig = output * (1-output)
 		self.o_elig = defs.LAMBDA * self.o_elig + diff_sig * self.output
 		for i in xrange(defs.NUM_FEATURES):
-			self.h_elig[i] = defs.LAMBDA * self.h_elig[i] + diff_sig * self.o_weight * self.output * (1-self.output) * self.inputs[self.index][i]
+			self.h_elig[i] = defs.LAMBDA * self.h_elig[i] + diff_sig * \
+							 self.o_weight * self.output * (1-self.output) * \
+							 self.inputs[self.index][i]
 
 	def get_output(self):
 		return self.output

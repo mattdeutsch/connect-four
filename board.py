@@ -6,7 +6,12 @@ import defs
 random.seed()
 
 class Board(object):
-    """docstring for Board"""
+    """
+    A representation of the connect-four board.
+    In addition to containing the state of the board,
+    it also has the methods required to update it and
+    some heuristics on the board which our algorithms use.
+    """
     def __init__(self):
         super(Board, self).__init__()
         self.reset()
