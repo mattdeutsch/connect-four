@@ -246,7 +246,7 @@ class Perfect(object):
 			for col2 in range(col + 1, 7):
 				for row in [3, 5]:
 					for row2 in [3, 5]:
-						if (board.open(col, row) and
+						if (board.open(row, col) and
 							board.open(row - 1, col) and
 							board.open(row - 2, col) and
 							board.open(row2, col2) and
@@ -284,9 +284,9 @@ class Perfect(object):
 								# The lowest in col1 is odd, next lowest is even.
 								threats_solved = []
 								for four in board.fours["X"]:
-									if (col1, row1 + 1) in four and (col2, row2) in four:
+									if (row1 + 1, col1) in four and (row2, col2) in four:
 										threats_solved.append(four)
-									elif (col1, row1 + 1) in four and (col3, row3) in four:
+									elif (row1 + 1, col1) in four and (row3, col3) in four:
 										threats_solved.append(four)
 									elif (col2, row2)
 

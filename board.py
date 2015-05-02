@@ -230,3 +230,25 @@ class Board(object):
                     if (self.cols[col][row] == ".") and row % 2 == 0:
                         return True
         return False
+
+    def squares_in_center(self):
+        tally = 0
+        for col in xrange(2, 5):
+            for row in xrange(0, 6):
+                if self.cols[col][row] == "X":
+                    tally += 1
+                elif self.cols[col][row] == "O":
+                    tally += 1
+        return tally/18 # An unattainable upper bound, but w/e
+
+    # Helper function for several heuristics.
+    # Path is a list of tuple increments.
+    def check_for_shape(self, path, player):
+        for col in xrange(0, 7):
+            for row in xrange(0, 6):
+                for inc_row, inc_col in ([(0, 0)] + path):
+                    col += inc_col
+                    row += inc_row
+                    if self.cols[col][row] == player:
+                        
+
