@@ -244,11 +244,16 @@ class Board(object):
     # Helper function for several heuristics.
     # Path is a list of tuple increments.
     def check_for_shape(self, path, player):
+        number_of_shape = 0
         for col in xrange(0, 7):
             for row in xrange(0, 6):
+                all_owned_by_player = True
                 for inc_row, inc_col in ([(0, 0)] + path):
                     col += inc_col
                     row += inc_row
-                    if self.cols[col][row] == player:
-                        
+                    if self.cols[col][row] != player:
+                        all_owned_by_player = False
+                if all_owned_by_player:
+                    number_of_shape += 1
+        return number_of_shape/21 # Once again, an unattainable upper bound.
 
