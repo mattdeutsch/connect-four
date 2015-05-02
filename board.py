@@ -1,4 +1,4 @@
-from copy import copy, deepcopy
+    from copy import copy, deepcopy
 import random
 import os 
 import defs
@@ -220,39 +220,39 @@ class Board(object):
                     number_of_shape += 1
         return number_of_shape/21 # Once again, an unattainable upper bound.
 
-    def number_of_triangles_x(self):
+    def number_of_triangles_x():
         return (self.check_for_shape([(1, 0), (0, 1)], "X") +
             self.check_for_shape([(0, 1), (1, 0)], "X") +
             self.check_for_shape([(0, -1), (1, 0)], "X") +
             self.check_for_shape([(-1, 0), (0, 1)], "X"))/4
 
-    def number_of_triangles_o(self):
+    def number_of_triangles_o():
         return -(self.check_for_shape([(1, 0), (0, 1)], "O") +
             self.check_for_shape([(0, 1), (1, 0)], "O") +
             self.check_for_shape([(0, -1), (1, 0)], "O") +
             self.check_for_shape([(-1, 0), (0, 1)], "O"))/4
 
-    def number_of_triangles_difference(self):
+    def number_of_triangles_difference():
         return (self.number_of_triangles_x() - self.number_of_triangles_o())/2
 
-    def number_of_sevens(self):
+    def number_of_sevens():
         return (self.check_for_shape([(1, 1), (1, 0), (0, -1)], "X") +
             self.check_for_shape([(-1, -1), (1, 0), (0, 1)], "X"))/2
 
-    def number_of_sevens_o(self):
+    def number_of_sevens_o():
         return -(self.check_for_shape([(1, 1), (1, 0), (0, -1)], "O") +
             self.check_for_shape([(-1, -1), (1, 0), (0, 1)], "O"))/2
 
-    def number_of_sevens_difference(self):
+    def number_of_sevens_difference():
         return (self.number_of_sevens() - self.number_of_sevens_o())/2
 
-    def number_of_crosses(self):
+    def number_of_crosses():
         return self.check_for_shape([(1, 1), (-1, 1)], "X")
 
-    def number_of_crosses_o(self):
+    def number_of_crosses_o():
         return self.check_for_shape([(1, 1), (-1, 1)], "O")
 
-    def crosses_difference(self):
+    def crosses_difference():
         return (self.number_of_crosses() - self.number_of_crosses_o())/2
 
 
@@ -285,7 +285,7 @@ class Board(object):
     def get_numstates(self):
         return self.num_states
 
-    def get_score(self, machine_weights):
+    def get_score(self):
         for four in self.fours["O"]:
             if (self.cols[(four[0])[1]][(four[0])[0]] == 
                 self.cols[(four[1])[1]][(four[1])[0]] == 
@@ -301,7 +301,6 @@ class Board(object):
                 self.cols[(four[3])[1]][(four[3])[0]] == 
                 "X"):
                 return defs.INFINITY
-
         output = 0.0
         curr_state = [self.important_threes(), 
                        self.important_threes_opponent(), 
@@ -322,25 +321,16 @@ class Board(object):
                        self.number_of_crosses_o(),
                        self.crosses_difference(),
                        defs.BIAS]
-
-        if machine_weights:
-            coeffso = 0.0
-            for i in xrange(defs.NUM_HIDDEN):
-                aux = 0.0
-                coeffsh = 0.0
-                for j in xrange(defs.NUM_FEATURES):
-                    aux += curr_state[j] * defs.init_hweights[i][j]
-                    coeffsh += defs.init_hweights[i][j]
-                output += defs.sigmoid(aux/coeffsh) * defs.init_oweight[i]
-                coeffso += defs.init_oweight[i]
-            return output / coeffso
-        
-        else:
-            coeffs = 0.0
-            for i in xrange(defs.NUM_FEATURES):
-                output += curr_state[i] * defs.human_weights[i]
-                coeffs += defs.human_weights[i]
-            return output / coeffs
+        coeffso = 0.0
+        for i in xrange(defs.NUM_HIDDEN):
+            aux = 0.0
+            coeffsh = 0.0
+            for j in xrange(defs.NUM_FEATURES):
+                aux += curr_state[j] * defs.init_hweights[i][j]
+                coeffsh += defs.init_hweights[i][j]
+            output += defs.sigmoid(aux/coeffsh) * defs.init_oweight[i]
+            coeffso += defs.init_oweight[i]
+        return output / coeffso
 
     def winning(self):
         if (self.cannot_play_in(0) and \
