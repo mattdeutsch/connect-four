@@ -285,7 +285,7 @@ class Board(object):
     def get_numstates(self):
         return self.num_states
 
-    def get_score(self):
+    def get_score(self, machine_weights):
         for four in self.fours["O"]:
             if (self.cols[(four[0])[1]][(four[0])[0]] == 
                 self.cols[(four[1])[1]][(four[1])[0]] == 
@@ -301,6 +301,7 @@ class Board(object):
                 self.cols[(four[3])[1]][(four[3])[0]] == 
                 "X"):
                 return defs.INFINITY
+
         output = 0.0
         curr_state = [self.important_threes(), 
                        self.important_threes_opponent(), 
@@ -310,17 +311,36 @@ class Board(object):
                        self.present_in(), 
                        self.opponent_present_in(), 
                        self.presence_difference(), 
-                       self.x_odd_threats()]
-        coeffso = 0.0
-        for i in xrange(defs.NUM_HIDDEN):
-            aux = 0.0
-            coeffsh = 0.0
-            for j in xrange(defs.NUM_FEATURES):
-                aux += curr_state[j] * defs.init_hweights[i][j]
-                coeffsh += defs.init_hweights[i][j]
-            output += defs.sigmoid(aux/coeffsh) * defs.init_oweight[i]
-            coeffso += defs.init_oweight[i]
-        return output / coeffso
+                       self.x_odd_threats(),
+                       self.number_of_triangles_x(),
+                       self.number_of_triangles_o(),
+                       self.number_of_triangles_difference(),
+                       self.number_of_sevens(),
+                       self.number_of_sevens_o(),
+                       self.number_of_sevens_difference(),
+                       self.number_of_crosses(),
+                       self.number_of_crosses_o(),
+                       self.crosses_difference(),
+                       defs.BIAS]
+
+        if machine_weights:
+            coeffso = 0.0
+            for i in xrange(defs.NUM_HIDDEN):
+                aux = 0.0
+                coeffsh = 0.0
+                for j in xrange(defs.NUM_FEATURES):
+                    aux += curr_state[j] * defs.init_hweights[i][j]
+                    coeffsh += defs.init_hweights[i][j]
+                output += defs.sigmoid(aux/coeffsh) * defs.init_oweight[i]
+                coeffso += defs.init_oweight[i]
+            return output / coeffso
+        
+        else:
+            coeffs = 0.0
+            for i in xrange(defs.NUM_FEATURES):
+                output += curr_state[i] * defs.human_weights[i]
+                coeffs += defs.human_weights[i]
+            return output / coeffs
 
     def winning(self):
         if (self.cannot_play_in(0) and \
