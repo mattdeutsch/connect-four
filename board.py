@@ -1,27 +1,22 @@
-# TO-DO LIST:
-#   - Graphics Interface 
-#   - Features Working Nicely
-#   - Perfect Algorithm
-#   - Machine Learning
-#   - Abstractions in the Code
-
 from copy import copy, deepcopy
 import random
 import os 
-
-def cls():
-    os.system(['clear','cls'][os.name == 'nt'])
+import defs
 
 random.seed()
-COLSNUM = 7
-ROWSNUM = 6
-INFINITY = 100
 
 class Board(object):
-    """docstring for Board"""
+    """
+    A representation of the connect-four board.
+    In addition to containing the state of the board,
+    it also has the methods required to update it and
+    some heuristics on the board which our algorithms use.
+    """
     def __init__(self):
         super(Board, self).__init__()
         self.reset()
+        self.states = [[0 for i in xrange(0, defs.NUM_FEATURES)]]
+        self.num_states = 1
 
     def reset(self):
         b = ['.' for c in xrange(0,6)]
@@ -54,9 +49,6 @@ class Board(object):
     def cannot_play_in(self, col):
         return not ('.' in self.cols[col])
 
-    def can_play_in(self, col):
-        return not self.cannot_play_in(col)
-
     def get_player(self):
         return self.current_player
 
@@ -71,7 +63,6 @@ class Board(object):
             return "O"
         else:
             return "X"
-
 
     def lowest_available(self, col):
         for i, sq in enumerate(self.cols[col]):
@@ -100,6 +91,7 @@ class Board(object):
             self.remove_fours(col, row)
             #print len(self.fours["O"])
             self.switch_player()
+            self.num_states += 1
         else:
             raise ValueError("ColumnFull")
 
@@ -134,46 +126,17 @@ class Board(object):
             x = random.randint(0,6)
         self.play(x)
 
-    def get_score(self):
-        for four in self.fours["O"]:
-            if (self.cols[(four[0])[1]][(four[0])[0]] == 
-                self.cols[(four[1])[1]][(four[1])[0]] == 
-                self.cols[(four[2])[1]][(four[2])[0]] == 
-                self.cols[(four[3])[1]][(four[3])[0]] == 
-                "O"):
-                return -1
-
-        for four in self.fours["X"]:
-            if (self.cols[(four[0])[1]][(four[0])[0]] == 
-                self.cols[(four[1])[1]][(four[1])[0]] == 
-                self.cols[(four[2])[1]][(four[2])[0]] == 
-                self.cols[(four[3])[1]][(four[3])[0]] == 
-                "X"):
-                return 1
-        return 0
-
-    def winning(self):
-        for four in self.fours[self.other_player()]:
-            flag = True
-            for i in xrange(0,4):
-                if not(self.cols[(four[i])[1]][(four[i])[0]] == self.other_player()):
-                    flag = False
-            if flag == True:
-                print "GAME OVER"
-                return True
-        return False
-
     # Heuristics/Features
     # Normalized such that best case for X => 1, best case for 0 => -1
     def fours_left(self):
-        return 2 * len(self.fours["X"])/69 - 1
+        return 2 * len(self.fours["X"])/69. - 1
 
     def fours_left_opponent(self):
-        return 2 * (1 - len(self.fours["O"])/69) - 1
+        return 2 * (1 - len(self.fours["O"])/69.) - 1
 
     # This should be normalized to something better I think...
     def fours_difference(self):
-        return 2 * (len(self.fours["X"]) - len(self.fours["O"]))/69 - 1
+        return 2 * (len(self.fours["X"]) - len(self.fours["O"]))/69. - 1
 
     # A helper function.
     def how_many_in(self, four, player):
@@ -190,9 +153,9 @@ class Board(object):
             if self.how_many_in(f, player) >= n:
                 ns += 1
         if player == "X":
-            return 2 * len(ns)/69 - 1
+            return 2 * ns/69. - 1
         else: # player == "O"
-            return 2 * (1 - len(ns)/69) - 1
+            return 2 * (1 - ns/69.) - 1
 
     # More heuristics/features.
     def important_threes(self):
@@ -202,7 +165,7 @@ class Board(object):
         return self.some_in_a_row(3, "O")
 
     def important_threes_difference(self):
-        return self.important_threes() - self.important_threes_difference()
+        return self.important_threes() - self.important_threes_opponent()
 
     def important_twos(self):
         return self.some_in_a_row(2, "X")
@@ -257,3 +220,137 @@ class Board(object):
                     number_of_shape += 1
         return number_of_shape/21 # Once again, an unattainable upper bound.
 
+    def number_of_triangles_x():
+        return (self.check_for_shape([(1, 0), (0, 1)], "X") +
+            self.check_for_shape([(0, 1), (1, 0)], "X") +
+            self.check_for_shape([(0, -1), (1, 0)], "X") +
+            self.check_for_shape([(-1, 0), (0, 1)], "X"))/4
+
+    def number_of_triangles_o():
+        return -(self.check_for_shape([(1, 0), (0, 1)], "O") +
+            self.check_for_shape([(0, 1), (1, 0)], "O") +
+            self.check_for_shape([(0, -1), (1, 0)], "O") +
+            self.check_for_shape([(-1, 0), (0, 1)], "O"))/4
+
+    def number_of_triangles_difference():
+        return (self.number_of_triangles_x() - self.number_of_triangles_o())/2
+
+    def number_of_sevens():
+        return (self.check_for_shape([(1, 1), (1, 0), (0, -1)], "X") +
+            self.check_for_shape([(-1, -1), (1, 0), (0, 1)], "X"))/2
+
+    def number_of_sevens_o():
+        return -(self.check_for_shape([(1, 1), (1, 0), (0, -1)], "O") +
+            self.check_for_shape([(-1, -1), (1, 0), (0, 1)], "O"))/2
+
+    def number_of_sevens_difference():
+        return (self.number_of_sevens() - self.number_of_sevens_o())/2
+
+    def number_of_crosses():
+        return self.check_for_shape([(1, 1), (-1, 1)], "X")
+
+    def number_of_crosses_o():
+        return self.check_for_shape([(1, 1), (-1, 1)], "O")
+
+    def crosses_difference():
+        return (self.number_of_crosses() - self.number_of_crosses_o())/2
+
+
+# THINGS I ADDED/CHANGED
+
+    def update_features(self):
+        self.states.append([self.important_threes(), 
+                       self.important_threes_opponent(), 
+                       self.important_threes_difference(), 
+                       self.important_twos(), 
+                       self.important_twos_opponent(), 
+                       self.present_in(), 
+                       self.opponent_present_in(), 
+                       self.presence_difference(), 
+                       self.x_odd_threats(),
+                       self.number_of_triangles_x(),
+                       self.number_of_triangles_o(),
+                       self.number_of_triangles_difference(),
+                       self.number_of_sevens(),
+                       self.number_of_sevens_o(),
+                       self.number_of_sevens_difference(),
+                       self.number_of_crosses(),
+                       self.number_of_crosses_o(),
+                       self.crosses_difference(),
+                       defs.BIAS])
+
+    def get_features(self):
+        return self.states
+
+    def get_numstates(self):
+        return self.num_states
+
+    def get_score(self):
+        for four in self.fours["O"]:
+            if (self.cols[(four[0])[1]][(four[0])[0]] == 
+                self.cols[(four[1])[1]][(four[1])[0]] == 
+                self.cols[(four[2])[1]][(four[2])[0]] == 
+                self.cols[(four[3])[1]][(four[3])[0]] == 
+                "O"):
+                return - defs.INFINITY
+
+        for four in self.fours["X"]:
+            if (self.cols[(four[0])[1]][(four[0])[0]] == 
+                self.cols[(four[1])[1]][(four[1])[0]] == 
+                self.cols[(four[2])[1]][(four[2])[0]] == 
+                self.cols[(four[3])[1]][(four[3])[0]] == 
+                "X"):
+                return defs.INFINITY
+        output = 0.0
+        curr_state = [self.important_threes(), 
+                       self.important_threes_opponent(), 
+                       self.important_threes_difference(), 
+                       self.important_twos(), 
+                       self.important_twos_opponent(), 
+                       self.present_in(), 
+                       self.opponent_present_in(), 
+                       self.presence_difference(), 
+                       self.x_odd_threats()]
+        coeffso = 0.0
+        for i in xrange(defs.NUM_HIDDEN):
+            aux = 0.0
+            coeffsh = 0.0
+            for j in xrange(defs.NUM_FEATURES):
+                aux += curr_state[j] * defs.init_hweights[i][j]
+                coeffsh += defs.init_hweights[i][j]
+            output += defs.sigmoid(aux/coeffsh) * defs.init_oweight[i]
+            coeffso += defs.init_oweight[i]
+        return output / coeffso
+
+    def winning(self):
+        if (self.cannot_play_in(0) and \
+            self.cannot_play_in(1) and \
+            self.cannot_play_in(2) and \
+            self.cannot_play_in(3) and \
+            self.cannot_play_in(4) and \
+            self.cannot_play_in(5) and \
+            self.cannot_play_in(6)):
+            return 0
+        for four in self.fours["O"]:
+            if (self.cols[(four[0])[1]][(four[0])[0]] == 
+                self.cols[(four[1])[1]][(four[1])[0]] == 
+                self.cols[(four[2])[1]][(four[2])[0]] == 
+                self.cols[(four[3])[1]][(four[3])[0]] == 
+                "O"):
+                return -1
+
+        for four in self.fours["X"]:
+            if (self.cols[(four[0])[1]][(four[0])[0]] == 
+                self.cols[(four[1])[1]][(four[1])[0]] == 
+                self.cols[(four[2])[1]][(four[2])[0]] == 
+                self.cols[(four[3])[1]][(four[3])[0]] == 
+                "X"):
+                return 1
+        return defs.INFINITY
+
+    def playable(self):
+        lst = []
+        for i in xrange(0,7):
+            if not self.cannot_play_in(i):
+                lst.append(i)
+        return lst
