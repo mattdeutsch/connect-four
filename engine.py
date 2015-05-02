@@ -1,6 +1,5 @@
 from copy import copy, deepcopy
 import defs
-import random
 
 class Engine(object):
     """ docstring for Engine
@@ -23,7 +22,7 @@ class Engine(object):
         to tell which of the nodes in terminal depth is the best one to use.
 
         Alpha-Beta are the same as in Alpha-Beta Pruning, except for the fact
-        that we use a "quicker" search with bounds (-alpha-0.5, -alpha) to check
+        that we use a "quicker" search with bounds (-alpha-0.1, -alpha) to check
         whether or not we should fully search the tree. This way, it cuts off
         even more cases.
 
@@ -31,9 +30,9 @@ class Engine(object):
         This method is very similar to the main loop described above, but it has
         to get the best move as well, so that our AI knows which move to play. """
 
-    def PVS(self, board, depth, alpha, beta, color):
+    def PVS(self, board, depth, alpha, beta, color, machine_weights):
         # Gets score for this current board, and sets the maxValue to -INF.
-        score = board.get_score()
+        score = board.get_score(machine_weights)
         maxValue = - defs.INFINITY
 
         # If we are in depth 0 or if we found a win opportunity, then 
@@ -46,11 +45,11 @@ class Engine(object):
                 c = deepcopy(board)
                 c.play(i)
                 if (i == 0):
-                    scr = -self.PVS(c, depth - 1, -beta, -alpha, -color)
+                    scr = -self.PVS(c, depth - 1, -beta, -alpha, -color, machine_weights)
                 else:
-                    scr = -self.PVS(c, depth - 1, -alpha-0.5, -alpha, -color)
+                    scr = -self.PVS(c, depth - 1, -alpha-0.1, -alpha, -color, machine_weights)
                     if (alpha < scr < beta):
-                        scr = -self.PVS(c, depth - 1, -beta, -scr, -color)
+                        scr = -self.PVS(c, depth - 1, -beta, -scr, -color, machine_weights)
 
                 alpha = max(alpha, scr)
 
@@ -59,7 +58,7 @@ class Engine(object):
             return alpha
 
     # On the first node, we should keep track of the move.
-    def getBestMove(self, board, depth, plyr):
+    def getBestMove(self, board, depth, plyr, machine_weights):
         maxValue = - defs.INFINITY
         maxMove = None
 
@@ -72,7 +71,7 @@ class Engine(object):
         for i in board.playable():
             c = deepcopy(board)
             c.play(i)
-            scr = -self.PVS(c, depth - 1, alpha, beta, plyr)
+            scr = -self.PVS(c, depth - 1, alpha, beta, plyr, machine_weights)
 
             if scr == -defs.INFINITY or scr == defs.INFINITY:
                 flag = True

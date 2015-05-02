@@ -7,7 +7,6 @@ class HiddenLayer():
 		self.inputs = inputs
 		self.index = index
 		self.h_weights = init_hweights # weights for inputs; h_weights[i] = v[i][j]
-		self.h_weights.append(defs.BIAS) # BIAS
 		self.o_weight = init_oweight # weight for output; o_weight = w[j]
 		self.h_elig = init_helig #initial eligibility traces; h_elig[i] = ev[i][j]
 		self.o_elig = init_oelig # equivalent to ew; o_elig = ew[j]

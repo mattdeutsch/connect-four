@@ -1,4 +1,4 @@
-    from copy import copy, deepcopy
+from copy import copy, deepcopy
 import random
 import os 
 import defs
@@ -6,12 +6,7 @@ import defs
 random.seed()
 
 class Board(object):
-    """
-    A representation of the connect-four board.
-    In addition to containing the state of the board,
-    it also has the methods required to update it and
-    some heuristics on the board which our algorithms use.
-    """
+    """docstring for Board"""
     def __init__(self):
         super(Board, self).__init__()
         self.reset()
@@ -191,69 +186,14 @@ class Board(object):
             if self.how_many_in(f, "X") == 3:
                 for (row, col) in f:
                     if (self.cols[col][row] == ".") and row % 2 == 0:
-                        return True
-        return False
+                        return 1
+        return 0
 
-    def squares_in_center(self):
-        tally = 0
-        for col in xrange(2, 5):
-            for row in xrange(0, 6):
-                if self.cols[col][row] == "X":
-                    tally += 1
-                elif self.cols[col][row] == "O":
-                    tally += 1
-        return tally/18 # An unattainable upper bound, but w/e
-
-    # Helper function for several heuristics.
-    # Path is a list of tuple increments.
-    def check_for_shape(self, path, player):
-        number_of_shape = 0
-        for col in xrange(0, 7):
-            for row in xrange(0, 6):
-                all_owned_by_player = True
-                for inc_row, inc_col in ([(0, 0)] + path):
-                    col += inc_col
-                    row += inc_row
-                    if self.cols[col][row] != player:
-                        all_owned_by_player = False
-                if all_owned_by_player:
-                    number_of_shape += 1
-        return number_of_shape/21 # Once again, an unattainable upper bound.
-
-    def number_of_triangles_x():
-        return (self.check_for_shape([(1, 0), (0, 1)], "X") +
-            self.check_for_shape([(0, 1), (1, 0)], "X") +
-            self.check_for_shape([(0, -1), (1, 0)], "X") +
-            self.check_for_shape([(-1, 0), (0, 1)], "X"))/4
-
-    def number_of_triangles_o():
-        return -(self.check_for_shape([(1, 0), (0, 1)], "O") +
-            self.check_for_shape([(0, 1), (1, 0)], "O") +
-            self.check_for_shape([(0, -1), (1, 0)], "O") +
-            self.check_for_shape([(-1, 0), (0, 1)], "O"))/4
-
-    def number_of_triangles_difference():
-        return (self.number_of_triangles_x() - self.number_of_triangles_o())/2
-
-    def number_of_sevens():
-        return (self.check_for_shape([(1, 1), (1, 0), (0, -1)], "X") +
-            self.check_for_shape([(-1, -1), (1, 0), (0, 1)], "X"))/2
-
-    def number_of_sevens_o():
-        return -(self.check_for_shape([(1, 1), (1, 0), (0, -1)], "O") +
-            self.check_for_shape([(-1, -1), (1, 0), (0, 1)], "O"))/2
-
-    def number_of_sevens_difference():
-        return (self.number_of_sevens() - self.number_of_sevens_o())/2
-
-    def number_of_crosses():
-        return self.check_for_shape([(1, 1), (-1, 1)], "X")
-
-    def number_of_crosses_o():
-        return self.check_for_shape([(1, 1), (-1, 1)], "O")
-
-    def crosses_difference():
-        return (self.number_of_crosses() - self.number_of_crosses_o())/2
+    def zugzwang(self):
+        if self.x_odd_threats():
+            "X"
+        else:
+            "O"
 
 
 # THINGS I ADDED/CHANGED
@@ -267,17 +207,7 @@ class Board(object):
                        self.present_in(), 
                        self.opponent_present_in(), 
                        self.presence_difference(), 
-                       self.x_odd_threats(),
-                       self.number_of_triangles_x(),
-                       self.number_of_triangles_o(),
-                       self.number_of_triangles_difference(),
-                       self.number_of_sevens(),
-                       self.number_of_sevens_o(),
-                       self.number_of_sevens_difference(),
-                       self.number_of_crosses(),
-                       self.number_of_crosses_o(),
-                       self.crosses_difference(),
-                       defs.BIAS])
+                       self.x_odd_threats()])
 
     def get_features(self):
         return self.states
@@ -285,7 +215,7 @@ class Board(object):
     def get_numstates(self):
         return self.num_states
 
-    def get_score(self):
+    def get_score(self, machine_weights):
         for four in self.fours["O"]:
             if (self.cols[(four[0])[1]][(four[0])[0]] == 
                 self.cols[(four[1])[1]][(four[1])[0]] == 
@@ -301,6 +231,7 @@ class Board(object):
                 self.cols[(four[3])[1]][(four[3])[0]] == 
                 "X"):
                 return defs.INFINITY
+
         output = 0.0
         curr_state = [self.important_threes(), 
                        self.important_threes_opponent(), 
@@ -310,27 +241,26 @@ class Board(object):
                        self.present_in(), 
                        self.opponent_present_in(), 
                        self.presence_difference(), 
-                       self.x_odd_threats(),
-                       self.number_of_triangles_x(),
-                       self.number_of_triangles_o(),
-                       self.number_of_triangles_difference(),
-                       self.number_of_sevens(),
-                       self.number_of_sevens_o(),
-                       self.number_of_sevens_difference(),
-                       self.number_of_crosses(),
-                       self.number_of_crosses_o(),
-                       self.crosses_difference(),
-                       defs.BIAS]
-        coeffso = 0.0
-        for i in xrange(defs.NUM_HIDDEN):
-            aux = 0.0
-            coeffsh = 0.0
-            for j in xrange(defs.NUM_FEATURES):
-                aux += curr_state[j] * defs.init_hweights[i][j]
-                coeffsh += defs.init_hweights[i][j]
-            output += defs.sigmoid(aux/coeffsh) * defs.init_oweight[i]
-            coeffso += defs.init_oweight[i]
-        return output / coeffso
+                       self.x_odd_threats()]
+
+        if machine_weights:
+            coeffso = 0.0
+            for i in xrange(defs.NUM_HIDDEN):
+                aux = 0.0
+                coeffsh = 0.0
+                for j in xrange(defs.NUM_FEATURES):
+                    aux += curr_state[j] * defs.init_hweights[i][j]
+                    coeffsh += defs.init_hweights[i][j]
+                output += defs.sigmoid(aux/coeffsh) * defs.init_oweight[i]
+                coeffso += defs.init_oweight[i]
+            return output / coeffso
+        
+        else:
+            coeffs = 0.0
+            for i in xrange(defs.NUM_FEATURES):
+                output += curr_state[i] * defs.human_weights[i]
+                coeffs += defs.human_weights[i]
+            return output / coeffs
 
     def winning(self):
         if (self.cannot_play_in(0) and \

@@ -1,4 +1,3 @@
-import random
 import board
 import engine
 import defs
@@ -36,29 +35,29 @@ def singleplayer(play_as, code):
             b.display_board()
 
         if (b.winning() == defs.INFINITY):
-            defs.AI_play(b, eng, AI_color)
+            defs.AI_play(b, eng, AI_color, 3, 4)
             print ""
             b.display_board()
 
     defs.print_winner(b.winning())
 
 # This function plays itself as a way of training the Neural Network.
-def play_itself():
-    defs.cls()
+def play_itself(code):
+    #defs.cls()
     b = board.Board()
     eng = engine.Engine()
-    b.display_board()
+    #b.display_board()
 
     while(b.winning() == defs.INFINITY):
-        defs.AI_play(b, eng, 1)
-        print ""
-        b.display_board()
+        defs.AI_play(b, eng, 1, code, 2)
+        #print ""
+        #b.display_board()
 
         if (b.winning() == defs.INFINITY):
-            defs.AI_play(b, eng, -1)
-            print ""
-            b.display_board()
-    
+            defs.AI_play(b, eng, -1, code, 2)
+            #print ""
+            #b.display_board()
+
     defs.print_winner(b.winning())
     defs.train(b)
 
@@ -110,7 +109,10 @@ def main():
             multiplayer()
 
         elif "t" in mode:
-            play_itself()
+            for i in xrange(100):
+                play_itself(1)
+            for i in xrange(100):
+                play_itself(3)
 
 if __name__ == "__main__":
     main ()

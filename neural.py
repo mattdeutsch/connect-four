@@ -1,4 +1,3 @@
-import random
 import defs
 import hidden
 from copy import deepcopy
@@ -28,7 +27,6 @@ class NeuralNet(object):
         self.update()
 
     def forward(self):
-        # make sure the last one is BIAS
         for neuron in self.hid_neurons:
             neuron.forward()   
 
@@ -36,6 +34,7 @@ class NeuralNet(object):
         for i in xrange(defs.NUM_HIDDEN):
             self.output += self.hid_neurons[i].get_output() * self.hid_neurons[i].get_oweight()
 
+        self.output += defs.BIAS
         self.output = defs.sigmoid(self.output)
 
     def backward(self):
