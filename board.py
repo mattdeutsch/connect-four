@@ -191,14 +191,72 @@ class Board(object):
             if self.how_many_in(f, "X") == 3:
                 for (row, col) in f:
                     if (self.cols[col][row] == ".") and row % 2 == 0:
-                        return 1
-        return 0
+                        return True
+        return False
 
-    def zugzwang(self):
-        if self.x_odd_threats():
-            "X"
-        else:
-            "O"
+    def squares_in_center(self):
+        tally = 0
+        for col in xrange(2, 5):
+            for row in xrange(0, 6):
+                if self.cols[col][row] == "X":
+                    tally += 1
+                elif self.cols[col][row] == "O":
+                    tally += 1
+        return tally/18 # An unattainable upper bound, but w/e
+
+    # Helper function for several heuristics.
+    # Path is a list of tuple increments.
+    def check_for_shape(self, path, player):
+        number_of_shape = 0
+        for col in xrange(0, 7):
+            for row in xrange(0, 6):
+                all_owned_by_player = True
+                for inc_row, inc_col in ([(0, 0)] + path):
+                    col += inc_col
+                    row += inc_row
+                    if col in range(0, 7) and row in range(0, 6):
+                        if self.cols[col][row] != player:
+                            all_owned_by_player = False
+                    else:
+                        all_owned_by_player = False
+                if all_owned_by_player:
+                    number_of_shape += 1
+        return number_of_shape/21 # Once again, an unattainable upper bound.
+
+    def number_of_triangles_x(self):
+        return (self.check_for_shape([(1, 0), (0, 1)], "X") +
+            self.check_for_shape([(0, 1), (1, 0)], "X") +
+            self.check_for_shape([(0, -1), (1, 0)], "X") +
+            self.check_for_shape([(-1, 0), (0, 1)], "X"))/4
+
+    def number_of_triangles_o(self):
+        return -(self.check_for_shape([(1, 0), (0, 1)], "O") +
+            self.check_for_shape([(0, 1), (1, 0)], "O") +
+            self.check_for_shape([(0, -1), (1, 0)], "O") +
+            self.check_for_shape([(-1, 0), (0, 1)], "O"))/4
+
+    def number_of_triangles_difference(self):
+        return (self.number_of_triangles_x() - self.number_of_triangles_o())/2
+
+    def number_of_sevens(self):
+        return (self.check_for_shape([(1, 1), (1, 0), (0, -1)], "X") +
+            self.check_for_shape([(-1, -1), (1, 0), (0, 1)], "X"))/2
+
+    def number_of_sevens_o(self):
+        return -(self.check_for_shape([(1, 1), (1, 0), (0, -1)], "O") +
+            self.check_for_shape([(-1, -1), (1, 0), (0, 1)], "O"))/2
+
+    def number_of_sevens_difference(self):
+        return (self.number_of_sevens() - self.number_of_sevens_o())/2
+
+    def number_of_crosses(self):
+        return self.check_for_shape([(1, 1), (-1, 1)], "X")
+
+    def number_of_crosses_o(self):
+        return self.check_for_shape([(1, 1), (-1, 1)], "O")
+
+    def crosses_difference(self):
+        return (self.number_of_crosses() - self.number_of_crosses_o())/2
 
 
 # THINGS I ADDED/CHANGED
@@ -212,7 +270,17 @@ class Board(object):
                        self.present_in(), 
                        self.opponent_present_in(), 
                        self.presence_difference(), 
-                       self.x_odd_threats()])
+                       self.x_odd_threats(),
+                       self.number_of_triangles_x(),
+                       self.number_of_triangles_o(),
+                       self.number_of_triangles_difference(),
+                       self.number_of_sevens(),
+                       self.number_of_sevens_o(),
+                       self.number_of_sevens_difference(),
+                       self.number_of_crosses(),
+                       self.number_of_crosses_o(),
+                       self.crosses_difference(),
+                       defs.BIAS])
 
     def get_features(self):
         return self.states
@@ -246,7 +314,17 @@ class Board(object):
                        self.present_in(), 
                        self.opponent_present_in(), 
                        self.presence_difference(), 
-                       self.x_odd_threats()]
+                       self.x_odd_threats(),
+                       self.number_of_triangles_x(),
+                       self.number_of_triangles_o(),
+                       self.number_of_triangles_difference(),
+                       self.number_of_sevens(),
+                       self.number_of_sevens_o(),
+                       self.number_of_sevens_difference(),
+                       self.number_of_crosses(),
+                       self.number_of_crosses_o(),
+                       self.crosses_difference(),
+                       defs.BIAS]
 
         if machine_weights:
             coeffso = 0.0

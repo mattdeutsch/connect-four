@@ -12,7 +12,7 @@ class Engine(object):
 
     Methods:
 
-    PVS: board -> depth -> alpha -> beta -> color -> float
+    PVS: board -> depth -> alpha -> beta -> color -> machine_weights -> float
         This method is the main recursion in this algorithm. Although fairly
         simple to code, it is not as easy to comprehend fully. It takes a board,
         a depth of search, parameters alpha and beta that serve to cut off 
@@ -27,9 +27,13 @@ class Engine(object):
         whether or not we should fully search the tree. This way, it cuts off
         even more cases.
 
-    getBestMove: board -> depth -> (float, float, bool)
+        machine_weights is just a bool to consider or not the weights trained, 
+        or the human weights previously set up.
+
+    getBestMove: board -> depth -> machine_weights -> (float, float, bool)
         This method is very similar to the main loop described above, but it has
         to get the best move as well, so that our AI knows which move to play. 
+        Flag is true if the move is necessary - namely, if it is an immediate threat.
     """
 
     def PVS(self, board, depth, alpha, beta, color, machine_weights):

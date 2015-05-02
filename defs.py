@@ -12,9 +12,9 @@ These are all pretty straightforward, so we won't bother with many
 details here. """
     
 INFINITY = 100
-NUM_FEATURES = 9
+NUM_FEATURES = 18
 NUM_HIDDEN = 20
-ALPHA = 0.1
+ALPHA = 0.055
 BETA = 0.05
 GAMMA = 0.9
 LAMBDA = 0.7
@@ -26,7 +26,7 @@ init_hweights = [[random.random() for i in xrange(NUM_FEATURES)] for j in xrange
 init_oweight = [random.random() for j in xrange(NUM_HIDDEN)]
 init_helig = [[random.random() for i in xrange(NUM_FEATURES)] for j in xrange(NUM_HIDDEN)]
 init_oelig = [random.random() for j in xrange(NUM_HIDDEN)]
-human_weights = [random.random() for i in xrange(NUM_FEATURES)]
+human_weights = [0.6, 0.8, 0.7, 0.4, 0.6, 0.6, 0.2, 0.2, 0.2, 0.8, 0.4, 0.4, 0.5, 0.6, 0.6, 0.7, 0.2, 0.2, 0.3, 0.5]
 
 def sigmoid(x):
     return 1.0 / (1.0 + math.exp(-x))
