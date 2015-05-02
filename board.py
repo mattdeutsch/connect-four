@@ -220,39 +220,39 @@ class Board(object):
                     number_of_shape += 1
         return number_of_shape/21 # Once again, an unattainable upper bound.
 
-    def number_of_triangles_x():
+    def number_of_triangles_x(self):
         return (self.check_for_shape([(1, 0), (0, 1)], "X") +
             self.check_for_shape([(0, 1), (1, 0)], "X") +
             self.check_for_shape([(0, -1), (1, 0)], "X") +
             self.check_for_shape([(-1, 0), (0, 1)], "X"))/4
 
-    def number_of_triangles_o():
+    def number_of_triangles_o(self):
         return -(self.check_for_shape([(1, 0), (0, 1)], "O") +
             self.check_for_shape([(0, 1), (1, 0)], "O") +
             self.check_for_shape([(0, -1), (1, 0)], "O") +
             self.check_for_shape([(-1, 0), (0, 1)], "O"))/4
 
-    def number_of_triangles_difference():
+    def number_of_triangles_difference(self):
         return (self.number_of_triangles_x() - self.number_of_triangles_o())/2
 
-    def number_of_sevens():
+    def number_of_sevens(self):
         return (self.check_for_shape([(1, 1), (1, 0), (0, -1)], "X") +
             self.check_for_shape([(-1, -1), (1, 0), (0, 1)], "X"))/2
 
-    def number_of_sevens_o():
+    def number_of_sevens_o(self):
         return -(self.check_for_shape([(1, 1), (1, 0), (0, -1)], "O") +
             self.check_for_shape([(-1, -1), (1, 0), (0, 1)], "O"))/2
 
-    def number_of_sevens_difference():
+    def number_of_sevens_difference(self):
         return (self.number_of_sevens() - self.number_of_sevens_o())/2
 
-    def number_of_crosses():
+    def number_of_crosses(self):
         return self.check_for_shape([(1, 1), (-1, 1)], "X")
 
-    def number_of_crosses_o():
+    def number_of_crosses_o(self):
         return self.check_for_shape([(1, 1), (-1, 1)], "O")
 
-    def crosses_difference():
+    def crosses_difference(self):
         return (self.number_of_crosses() - self.number_of_crosses_o())/2
 
 
